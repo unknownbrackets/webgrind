@@ -54,6 +54,9 @@ class Webgrind_FileHandler
         if (preg_match('/\.webgrind$/', $file))
             return 'Webgrind internal';
 
+        if (substr($file, -3) === '.gz')
+            $file = 'compress.zlib://' . $file;
+
         // Grab name of invoked file.
         $fp = fopen($file, 'r');
         $invokeUrl = '';

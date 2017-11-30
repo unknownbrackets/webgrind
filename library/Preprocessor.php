@@ -49,7 +49,11 @@ class Webgrind_Preprocessor
             return;
         }
 
-        $in = @fopen($inFile, 'rb');
+        $inFileArg = $inFile;
+        if (substr($inFile, -3) === '.gz')
+            $inFileArg = 'compress.zlib://' . $inFile;
+
+        $in = @fopen($inFileArg, 'rb');
         if (!$in)
             throw new Exception('Could not open '.$inFile.' for reading.');
         $out = @fopen($outFile, 'w+b');

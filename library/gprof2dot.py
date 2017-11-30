@@ -31,6 +31,7 @@ import xml.parsers.expat
 import collections
 import locale
 import json
+import gzip
 
 
 # Python 2.x/3.x compatibility
@@ -813,7 +814,11 @@ class LineParser(Parser):
             self.line_no += 1
         line = line.rstrip('\r\n')
         if not PYTHON_3:
-            encoding = self._stream.encoding
+            try:
+                encoding = self._stream.encoding
+            except AttributeError:
+                # Gzip files don't have an encoding.
+                encoding = None
             if encoding is None:
                 encoding = locale.getpreferredencoding()
             line = line.decode(encoding)
@@ -3040,6 +3045,19 @@ def naturalJoin(values):
         return ''.join(values)
 
 
+def openDataFile(filename):
+    isGzip = str(filename).endswith('.gz');
+    if PYTHON_3:
+        if isGzip:
+            return gzip.open(filename, 'rt', encoding='UTF-8')
+        else:
+            return open(filename, 'rt', encoding='UTF-8')
+    elif isGzip:
+        return gzip.open(filename, 'r')
+    else:
+        return open(filename, 'rt')
+
+
 def main():
     """Main program."""
 
@@ -3132,10 +3150,8 @@ def main():
     if Format.stdinInput:
         if not args:
             fp = sys.stdin
-        elif PYTHON_3:
-            fp = open(args[0], 'rt', encoding='UTF-8')
         else:
-            fp = open(args[0], 'rt')
+            fp = openDataFile(args[0])
         parser = Format(fp)
     elif Format.multipleInput:
         if not args:
